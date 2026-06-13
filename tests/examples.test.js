@@ -29,6 +29,25 @@ test("obj", () => {
     expect(parsed.safe).toBe(1);
     expect(Object.prototype.polluted).toBeUndefined();
 
+    const parsedPrimitive = parse('{"__proto__":1,"safe":1}');
+    expect(Object.prototype.hasOwnProperty.call(parsedPrimitive, "__proto__")).toBe(true);
+    expect(parsedPrimitive.__proto__).toBe(1);
+    expect(parsedPrimitive.safe).toBe(1);
+    expect(Object.prototype.polluted).toBeUndefined();
+
+    const nested = parse('{"child":{"__proto__":{"polluted":true}},"items":[{"__proto__":1}]}');
+    expect(Object.prototype.hasOwnProperty.call(nested.child, "__proto__")).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(nested.items[0], "__proto__")).toBe(true);
+    expect(nested.child.__proto__).toEqual(protoValue);
+    expect(nested.items[0].__proto__).toBe(1);
+    expect(Object.prototype.polluted).toBeUndefined();
+
+    const parsedWithFlags = parse('{"__proto__":{"polluted":true},"safe":1}', OBJ | STR);
+    expect(Object.prototype.hasOwnProperty.call(parsedWithFlags, "__proto__")).toBe(true);
+    expect(parsedWithFlags.__proto__).toEqual(protoValue);
+    expect(parsedWithFlags.safe).toBe(1);
+    expect(Object.prototype.polluted).toBeUndefined();
+
     expect(() => parse("{", STR)).toThrow(PartialJSON);
     expect(() => parse('{"', STR)).toThrow(PartialJSON);
     expect(() => parse('{""', STR)).toThrow(PartialJSON);

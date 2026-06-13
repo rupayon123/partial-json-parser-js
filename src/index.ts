@@ -106,12 +106,16 @@ const _parseJSON = (jsonString: string, allow: number) => {
                 index++; // skip colon
                 try {
                     const value = parseAny();
-                    Object.defineProperty(obj, key, {
-                        value,
-                        writable: true,
-                        enumerable: true,
-                        configurable: true,
-                    });
+                    if (key === "__proto__") {
+                        Object.defineProperty(obj, key, {
+                            value,
+                            writable: true,
+                            enumerable: true,
+                            configurable: true,
+                        });
+                    } else {
+                        obj[key] = value;
+                    }
                 } catch (e) {
                     if (Allow.OBJ & allow) return obj;
                     else throw e;
