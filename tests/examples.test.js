@@ -22,6 +22,13 @@ test("obj", () => {
     expect(parse('{"": "', OBJ)).toEqual({});
     expect(parse('{"": "', OBJ | STR)).toEqual({ "": "" });
 
+    const protoValue = { polluted: true };
+    const parsed = parse('{"__proto__":{"polluted":true},"safe":1}');
+    expect(Object.prototype.hasOwnProperty.call(parsed, "__proto__")).toBe(true);
+    expect(parsed.__proto__).toEqual(protoValue);
+    expect(parsed.safe).toBe(1);
+    expect(Object.prototype.polluted).toBeUndefined();
+
     expect(() => parse("{", STR)).toThrow(PartialJSON);
     expect(() => parse('{"', STR)).toThrow(PartialJSON);
     expect(() => parse('{""', STR)).toThrow(PartialJSON);
