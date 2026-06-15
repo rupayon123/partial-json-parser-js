@@ -35,6 +35,8 @@ const _parseJSON = (jsonString: string, allow: number) => {
         throw new MalformedJSON(`${msg} at position ${index}`);
     };
 
+    const isPartialJSON = (e: unknown) => e instanceof PartialJSON;
+
     const parseAny: () => any = () => {
         skipBlank();
         if (index >= length) markPartialJSON("Unexpected end of input");
@@ -108,15 +110,18 @@ const _parseJSON = (jsonString: string, allow: number) => {
                     const value = parseAny();
                     obj[key] = value;
                 } catch (e) {
-                    if (Allow.OBJ & allow) return obj;
-                    else throw e;
+                    if (Allow.OBJ & allow && isPartialJSON(e)) return obj;
+                    throw e;
                 }
                 skipBlank();
                 if (jsonString[index] === ",") index++; // skip comma
             }
         } catch (e) {
-            if (Allow.OBJ & allow) return obj;
-            else markPartialJSON("Expected '}' at end of object");
+            if (isPartialJSON(e)) {
+                if (Allow.OBJ & allow) return obj;
+                markPartialJSON("Expected '}' at end of object");
+            }
+            throw e;
         }
         index++; // skip final brace
         return obj;
@@ -124,6 +129,7 @@ const _parseJSON = (jsonString: string, allow: number) => {
 
     const parseArr = () => {
         index++; // skip initial bracket
+        skipBlank();
         const arr = [];
         try {
             while (jsonString[index] !== "]") {
@@ -131,13 +137,17 @@ const _parseJSON = (jsonString: string, allow: number) => {
                 skipBlank();
                 if (jsonString[index] === ",") {
                     index++; // skip comma
+                    skipBlank();
                 }
             }
         } catch (e) {
-            if (Allow.ARR & allow) {
-                return arr;
+            if (isPartialJSON(e)) {
+                if (Allow.ARR & allow) {
+                    return arr;
+                }
+                markPartialJSON("Expected ']' at end of array");
             }
-            markPartialJSON("Expected ']' at end of array");
+            throw e;
         }
         index++; // skip final bracket
         return arr;
