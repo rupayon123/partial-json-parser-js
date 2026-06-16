@@ -114,14 +114,15 @@ const _parseJSON = (jsonString: string, allow: number) => {
                     throw e;
                 }
                 skipBlank();
-                if (jsonString[index] === ",") index++; // skip comma
+                if (jsonString[index] === ",") {
+                    index++; // skip comma
+                    skipBlank();
+                }
             }
         } catch (e) {
-            if (isPartialJSON(e)) {
-                if (Allow.OBJ & allow) return obj;
-                markPartialJSON("Expected '}' at end of object");
-            }
-            throw e;
+            if (!isPartialJSON(e)) throw e;
+            if (Allow.OBJ & allow) return obj;
+            markPartialJSON("Expected '}' at end of object");
         }
         index++; // skip final brace
         return obj;
@@ -141,13 +142,11 @@ const _parseJSON = (jsonString: string, allow: number) => {
                 }
             }
         } catch (e) {
-            if (isPartialJSON(e)) {
-                if (Allow.ARR & allow) {
-                    return arr;
-                }
-                markPartialJSON("Expected ']' at end of array");
+            if (!isPartialJSON(e)) throw e;
+            if (Allow.ARR & allow) {
+                return arr;
             }
-            throw e;
+            markPartialJSON("Expected ']' at end of array");
         }
         index++; // skip final bracket
         return arr;
