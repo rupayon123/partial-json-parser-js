@@ -21,4 +21,8 @@ describe("malformed JSON handling", () => {
     it("keeps parsing after an object comma with spaces", () => {
         expect(parse('{"a":1,   }')).toEqual({ a: 1 });
     });
+
+    it("keeps parsing after an array comma with spaces", () => {
+        expect(parse("[1,   ]")).toEqual([1]);
+    });
 });
