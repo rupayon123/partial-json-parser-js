@@ -72,6 +72,17 @@ result = parse("-Inf");
 console.log(result); // Outputs: -Infinity
 ```
 
+### Parsing model replies with Markdown fences
+
+`parse` expects the JSON text itself. If a model wraps JSON in Markdown fences or surrounding prose, strip that wrapper before passing the string to `parse`:
+
+````js
+const reply = "```json\n{\"status\": \"ok\"}\n```";
+const json = reply.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+
+parse(json); // Outputs: { status: "ok" }
+````
+
 ### Handling malformed JSON
 
 If the JSON string is malformed, the `parse` function will throw an error:
