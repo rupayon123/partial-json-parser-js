@@ -77,8 +77,9 @@ console.log(result); // Outputs: -Infinity
 `parse` expects the JSON text itself. If a model wraps JSON in Markdown fences or surrounding prose, strip that wrapper before passing the string to `parse`:
 
 ````js
-const reply = "```json\n{\"status\": \"ok\"}\n```";
-const json = reply.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+const reply = "Here is the JSON:\n```json\n{\"status\": \"ok\"}\n```";
+const match = reply.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+const json = match ? match[1] : reply;
 
 parse(json); // Outputs: { status: "ok" }
 ````
