@@ -120,7 +120,10 @@ const _parseJSON = (jsonString: string, allow: number) => {
                 }
             }
         } catch (e) {
-            if (!isPartialJSON(e)) throw e;
+            if (!isPartialJSON(e)) {
+                if (index >= length) markPartialJSON("Expected '}' at end of object");
+                throw e;
+            }
             if (Allow.OBJ & allow) return obj;
             markPartialJSON("Expected '}' at end of object");
         }
