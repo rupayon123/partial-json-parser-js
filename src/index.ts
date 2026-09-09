@@ -156,35 +156,23 @@ const _parseJSON = (jsonString: string, allow: number) => {
     };
 
     const parseNum = () => {
-        if (index === 0) {
-            if (jsonString === "-") throwMalformedError("Not sure what '-' is");
-            try {
-                return JSON.parse(jsonString);
-            } catch (e) {
-                if (Allow.NUM & allow)
-                    try {
-                        return JSON.parse(jsonString.substring(0, jsonString.lastIndexOf("e")));
-                    } catch (e) {}
-                throwMalformedError(String(e));
-            }
-        }
-
         const start = index;
+        while (index < length && !",]} \n\r\t".includes(jsonString[index])) index++;
+        const token = jsonString.substring(start, index);
+        const atEnd = index === length;
 
-        if (jsonString[index] === "-") index++;
-        while (jsonString[index] && ",]}".indexOf(jsonString[index]) === -1) index++;
-
-        if (index == length && !(Allow.NUM & allow)) markPartialJSON("Unterminated number literal");
+        if (start > 0 && atEnd && !(Allow.NUM & allow)) markPartialJSON("Unterminated number literal");
 
         try {
-            return JSON.parse(jsonString.substring(start, index));
+            return JSON.parse(token);
         } catch (e) {
-            if (jsonString.substring(start, index) === "-") markPartialJSON("Not sure what '-' is");
-            try {
-                return JSON.parse(jsonString.substring(start, jsonString.lastIndexOf("e")));
-            } catch (e) {
-                throwMalformedError(String(e));
+            if (token === "-" && atEnd && start > 0) markPartialJSON("Not sure what '-' is");
+            if (atEnd && Allow.NUM & allow) {
+                const partial = token.match(/^(-?(?:0|[1-9]\d*)(?:\.\d+)?)[eE][+-]?$/)
+                    ?? token.match(/^(-?(?:0|[1-9]\d*))\.$/);
+                if (partial) return JSON.parse(partial[1]);
             }
+            throwMalformedError(String(e));
         }
     };
 
