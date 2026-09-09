@@ -10,6 +10,7 @@ describe("partial number suffixes", () => {
     it.each(["1evil", "1e+oops", "01e", "1.e", "1e2e"])("rejects malformed exponent text: %s", (input) => {
         expect(() => parse(input)).toThrow(MalformedJSON);
         expect(() => parse(`[${input}]`)).toThrow(MalformedJSON);
+        expect(() => parse(`{"value":${input}`)).toThrow(MalformedJSON);
     });
     it.each(["[1e,2]", "[1.,2]", "[1E+]", '[1e+2junk]'])("does not repair numbers terminated by a delimiter: %s", (input) => {
         expect(() => parse(input)).toThrow(MalformedJSON);
