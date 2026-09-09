@@ -188,7 +188,10 @@ const _parseJSON = (jsonString: string, allow: number) => {
             index++;
         }
     };
-    return parseAny();
+    const value = parseAny();
+    skipBlank();
+    if (index < length) throwMalformedError("Unexpected content after JSON value");
+    return value;
 };
 
 const parse = parseJSON;
