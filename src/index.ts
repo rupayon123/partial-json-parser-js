@@ -102,9 +102,12 @@ const _parseJSON = (jsonString: string, allow: number) => {
         try {
             while (jsonString[index] !== "}") {
                 skipBlank();
-                if (index >= length && Allow.OBJ & allow) return obj;
+                if (index >= length) markPartialJSON("Expected an object key");
+                if (jsonString[index] !== '"') throwMalformedError("Expected a quoted object key");
                 const key = parseStr();
                 skipBlank();
+                if (index >= length) markPartialJSON("Expected ':' after object key");
+                if (jsonString[index] !== ":") throwMalformedError("Expected ':' after object key");
                 index++; // skip colon
                 try {
                     const value = parseAny();
@@ -117,6 +120,8 @@ const _parseJSON = (jsonString: string, allow: number) => {
                 if (jsonString[index] === ",") {
                     index++; // skip comma
                     skipBlank();
+                } else if (index < length && jsonString[index] !== "}") {
+                    throwMalformedError("Expected ',' or '}' after object value");
                 }
             }
         } catch (e) {
@@ -142,6 +147,8 @@ const _parseJSON = (jsonString: string, allow: number) => {
                 if (jsonString[index] === ",") {
                     index++; // skip comma
                     skipBlank();
+                } else if (index < length && jsonString[index] !== "]") {
+                    throwMalformedError("Expected ',' or ']' after array value");
                 }
             }
         } catch (e) {
