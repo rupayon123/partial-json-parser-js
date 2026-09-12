@@ -165,19 +165,24 @@ const _parseJSON = (jsonString: string, allow: number) => {
         const token = jsonString.substring(start, index);
         const atEnd = index === length;
 
-        if (start > 0 && atEnd && !(Allow.NUM & allow)) markPartialJSON("Unterminated number literal");
-
+        let value;
         try {
-            return JSON.parse(token);
+            value = JSON.parse(token);
         } catch (e) {
             if (token === "-" && atEnd && start > 0) markPartialJSON("Not sure what '-' is");
-            if (atEnd && Allow.NUM & allow) {
+            if (atEnd) {
                 const partial = token.match(/^(-?(?:0|[1-9]\d*)(?:\.\d+)?)[eE][+-]?$/)
                     ?? token.match(/^(-?(?:0|[1-9]\d*))\.$/);
-                if (partial) return JSON.parse(partial[1]);
+                if (partial) {
+                    if (Allow.NUM & allow) return JSON.parse(partial[1]);
+                    if (start > 0) markPartialJSON("Unterminated number literal");
+                }
             }
             throwMalformedError(String(e));
         }
+        // Only valid numeric tokens can be incomplete streaming numbers.
+        if (start > 0 && atEnd && !(Allow.NUM & allow)) markPartialJSON("Unterminated number literal");
+        return value;
     };
 
     const skipBlank = () => {
